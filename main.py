@@ -235,6 +235,9 @@ async def generate_payment_signature():
     json_data = json.dumps(json_data)
     concat_data = get_concat_values_from_json(json_data)
     signature = generate_rsa_signature(private_key, concat_data.encode())
+ 
+    from fastapi import FastAPI
+    import requestscode
     return PaymentResponse(Signature=signature, TimeStamp=time)
 
 
@@ -297,3 +300,24 @@ async def generate_payment_signature():
     concat_data = get_concat_values_from_json(json_data)
     signature = generate_rsa_signature(private_key, concat_data.encode())
     return PaymentResponse(Signature=signature, TimeStamp=time)
+
+
+
+from fastapi import FastAPI
+import requests
+
+app = FastAPI()
+
+@app.get("/movieshow")
+async def get_movie_data(hall_name: str, movie_name: str):
+    response = requests.post('https://services.khalti.com/api/servicegroup/search/movie/ ?token=n3xTCGOAGZ6ua0xsgkNH')
+    movies_data = response.json()
+
+    for movie in movies_data:
+        if movie['name'] == movie_name:
+            for theatre in movie['theatres']:
+                if theatre['name'] == hall_name:
+                    for show in theatre['shows']:
+                        return {"show_id": show["show_id"]}
+    return {"error": "Movie or theatre not found."}
+
